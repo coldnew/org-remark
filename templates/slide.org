@@ -1,0 +1,16 @@
+#+TITLE: {{{TITLE}}}
+#+AUTHOR: {{{AUTHOR}}}
+#+EMAIL:  {{{EMAIL}}}
+#+DATE:   {{{DATE}}}
+#+LANGUAGE: {{{LANGUAGE}}}
+
+#+OPTIONS: toc: nil num:nil ^:nil
+
+
+* {{{TITLE}}}
+
+:PROPERTIES:
+:CLASS: center, middle, inverse
+:END:
+
+{{{AUTHOR}}}
