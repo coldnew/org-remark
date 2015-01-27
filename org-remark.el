@@ -34,6 +34,8 @@
 (require 'ox-publish)
 (require 'ht)
 (require 'mustache)
+(require 'dash)
+(require 's)
 
 (eval-when-compile (require 'cl))
 
@@ -47,10 +49,37 @@
   "http://github.com/coldnew/org-remark"
   "Url for org-remakr.")
 
+
+;;; User Configuration Variables
+
+(defvar ox-remark-template-list
+  (list
+   ;; TODO: replace with slide_header
+   :page_header        "page_header.html"
+   :page_footer        "page_footer.html"
+
+   :plugin_analytics   "plugin_analytics.html"
+   :plugin_lloogg      "plugin_lloogg.html"
+   :plugin_fancybox    "plugin_fancybox.html"
+
+   ;; New slide template
+   :slide_template     "slide.org")
+  "Template filename define for ox-remark to parse.")
+
+;;; Customized Variables
+
+
+;;; Internal variables
+
+(defvar ox-remark-directory
+  (file-name-directory load-file-name))
+
+(defvar ox-remark-template-directory
+  (directory-file-name (concat ox-remark-directory "templates")))
+
 ;;;; Load all org-remark functions
 (mapcar (lambda (x) (require (intern (format "ox-remark-%s" x)) nil t))
-        '("vars" "core" "html"))
-
+        '("core" "html"))
 
 
 ;;; End-user functions
