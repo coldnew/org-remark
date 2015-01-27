@@ -127,6 +127,7 @@ Return output file's name."
   (let ((outfile (org-export-output-file-name ".html" subtreep)))
     (org-export-to-file 'ox-remark outfile async subtreep visible-only)))
 
+;;;###autoload
 (define-minor-mode org-remark-save-and-export-mode
   "Serves the buffer live over HTTP."
   :group 'org-remark-save-and-export-mode
