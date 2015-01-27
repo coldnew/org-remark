@@ -170,7 +170,8 @@ holding export options."
   (concat
    ;; Table of contents.
    (let ((depth (plist-get info :with-toc)))
-     (when depth (org-blogit-toc depth info)))
+     ;;     (when depth (org-blogit-toc depth info))
+     )
 
    ;; Header
    (ox-remark--render-header-template info)
@@ -237,8 +238,8 @@ Return output file's name."
   ;;  (imp-set-user-filter #'org-remark--htmlize-filter)
   (save-restriction
     (if org-remark-mode
-        (add-hook 'local-write-file-hooks 'org-remark--update-file)
-      (remove-hook 'local-write-file-hooks 'org-remark--update-file))
+        (add-hook 'after-save-hook nil 'append 'make-it-local)
+      (remove-hook 'after-save-hook 'org-remark--update-file 'make-it-local))
     org-remark-mode))
 
 (defun org-remark--htmlize-filter (buffer)
