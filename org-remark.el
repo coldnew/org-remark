@@ -81,9 +81,63 @@
 (mapcar (lambda (x) (require (intern (format "ox-remark-%s" x)) nil t))
         '("core" "html"))
 
+
+;;;; Internal functions
+
+(defun org-remark--save-and-export ()
+  (org-remark-export-to-html))
+
 
 ;;; End-user functions
 
+;;;###autoload
+(defun org-remark-export-as-html
+    (&optional async subtreep visible-only body-only ext-plist)
+  "Export current buffer to an HTML buffer for blogit.
+
+Export is done in a buffer named \"*Blogit HTML Export*\", which
+will be displayed when `org-export-show-temporary-export-buffer'
+is non-nil."
+  (interactive)
+  (org-export-to-buffer 'ox-remark "*Org remark Export*"
+    async subtreep visible-only nil nil (lambda () (html-mode))))
+
+;;;###autoload
+(defun org-remark-export-to-html (&optional async subtreep visible-only)
+  "Export current buffer to a Markdown file.
+
+If narrowing is active in the current buffer, only export its
+narrowed part.
+
+If a region is active, export that region.
+
+A non-nil optional argument ASYNC means the process should happen
+asynchronously.  The resulting file should be accessible through
+the `org-export-stack' interface.
+
+When optional argument SUBTREEP is non-nil, export the sub-tree
+at point, extracting information from the headline properties
+first.
+
+When optional argument VISIBLE-ONLY is non-nil, don't export
+contents of hidden elements.
+
+Return output file's name."
+  (interactive)
+  (let ((outfile (org-export-output-file-name ".html" subtreep)))
+    (org-export-to-file 'ox-remark outfile async subtreep visible-only)))
+
+(define-minor-mode org-remark-save-and-export-mode
+  "Serves the buffer live over HTTP."
+  :group 'org-remark-save-and-export-mode
+  :lighter " remark-se"
+  ;;  (impatient-mode)
+  ;;  (imp-set-user-filter #'org-remark--htmlize-filter)
+  (save-restriction
+    (if org-remark-save-and-export-mode
+        (add-hook 'after-save-hook nil 'append 'make-it-local)
+      (remove-hook 'after-save-hook 'org-remark--save-and-export 'make-it-local))
+    org-remark-save-and-export-mode))
 
 
 (provide 'org-remark)

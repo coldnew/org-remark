@@ -186,61 +186,12 @@ holding export options."
    (ox-remark--render-footer-template info)))
 
 ;;;###autoload
-(defun org-remark-export-as-html
-    (&optional async subtreep visible-only body-only ext-plist)
-  "Export current buffer to an HTML buffer for blogit.
-
-Export is done in a buffer named \"*Blogit HTML Export*\", which
-will be displayed when `org-export-show-temporary-export-buffer'
-is non-nil."
-  (interactive)
-  (org-export-to-buffer 'ox-remark "*Org remark Export*"
-    async subtreep visible-only nil nil (lambda () (html-mode))))
-
-;;;###autoload
-(defun org-remark-export-to-html (&optional async subtreep visible-only)
-  "Export current buffer to a Markdown file.
-
-If narrowing is active in the current buffer, only export its
-narrowed part.
-
-If a region is active, export that region.
-
-A non-nil optional argument ASYNC means the process should happen
-asynchronously.  The resulting file should be accessible through
-the `org-export-stack' interface.
-
-When optional argument SUBTREEP is non-nil, export the sub-tree
-at point, extracting information from the headline properties
-first.
-
-When optional argument VISIBLE-ONLY is non-nil, don't export
-contents of hidden elements.
-
-Return output file's name."
-  (interactive)
-  (let ((outfile (org-export-output-file-name ".html" subtreep)))
-    (org-export-to-file 'ox-remark outfile async subtreep visible-only)))
-
-;;;###autoload
 (defun org-remark-open-browser()
   (interactive)
   ;;  (add-hook 'after-change-functions 'org-remark--change nil t)
   (browse-url (format "http://%s:%d/imp/live/%s"
                       "localhost" httpd-port (buffer-name (current-buffer)))))
 
-
-(define-minor-mode org-remark-mode
-  "Serves the buffer live over HTTP."
-  :group 'org-remark-mode
-  :lighter " remark"
-  ;;  (impatient-mode)
-  ;;  (imp-set-user-filter #'org-remark--htmlize-filter)
-  (save-restriction
-    (if org-remark-mode
-        (add-hook 'after-save-hook nil 'append 'make-it-local)
-      (remove-hook 'after-save-hook 'org-remark--update-file 'make-it-local))
-    org-remark-mode))
 
 (defun org-remark--htmlize-filter (buffer)
   (let ((org-export-show-temporary-export-buffer nil))
@@ -249,9 +200,6 @@ Return output file's name."
     (insert-buffer-substring "*Org remark Export*")
     (kill-buffer "*Org remark Export*")
     ))
-
-(defun org-remark--update-file ()
-  (org-remark-export-to-html))
 
 
 (provide 'ox-remark-html)
