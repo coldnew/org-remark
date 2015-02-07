@@ -49,6 +49,10 @@
   "http://github.com/coldnew/org-remark"
   "Url for org-remakr.")
 
+(defconst org-remark-path
+  (file-name-directory (or load-file-name (buffer-file-name)))
+  "Get the absolute path of dir contains ox-remark.el")
+
 
 ;;; User Configuration Variables
 
