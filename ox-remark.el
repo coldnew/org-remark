@@ -6,6 +6,7 @@
 ;; Keywords: html presentation org-mode
 ;; X-URL: http://github.com/coldnew/org-remark
 ;; Version: 0.1
+;; Package-Requires: ((emacs "24.1") (org "8.0") (cl-lib "0.5") (f "0.17.2") (ht "2.0") (dash "2.6.0") (mustache "0.22"))
 
 ;; This file is not part of GNU Emacs.
 
