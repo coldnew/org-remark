@@ -93,18 +93,10 @@
   "Conver string to key. eq: \"test\" -> :test"
   (intern (format ":%s" string)))
 
-(defun ox-remark--symbol-to-key (symbol)
-  "Conver symbol to key. eq: test -> :test"
-  (ox-remark--string-to-key (symbol-name symbol)))
-
 (defun ox-remark--key-to-string (key)
   "Conver key to string. eq: :test -> \"test\""
   (let ((key-str (symbol-name key)))
     (s-right (- (length key-str) 1) key-str)))
-
-(defun ox-remark--key-to-symbol (key)
-  "Conver key to symbol. eq: test -> :test"
-  (intern (ox-remark--key-to-string key)))
 
 ;; FIXME: not elegant
 (defun ox-remark--remove-dulpicate-backslash (str)
