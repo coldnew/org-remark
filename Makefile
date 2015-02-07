@@ -3,6 +3,12 @@ CASK ?= cask
 
 all: compile
 
+README.md: make-readme-markdown.el
+	${EMACS} --script $< <ox-remark.el>$@ 2>/dev/null
+make-readme-markdown.el:
+	wget -q -O $@ https://raw.github.com/mgalgs/make-readme-markdown/master/make-readme-markdown.el
+.INTERMEDIATE: make-readme-markdown.el
+
 test: clean
 	${MAKE} all
 	${MAKE} unit
@@ -15,4 +21,4 @@ clean:
 compile:
 	${CASK} exec  ${EMACS} -Q -batch -f batch-byte-compile ox-remark.el
 
-.PHONY: all test unit compile
+.PHONY: all test unit compile clean README.md
