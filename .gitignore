@@ -1,2 +1,13 @@
 TAGS
+*~
 *.elc
+*.[oa]
+*.swp
+*.a
+*.so
+*.out
+*.exe
+.#*
+.cask/
+flycheck_*
+.sandbox/
