@@ -29,6 +29,8 @@
 
 ;;; Dependencies
 
+(eval-when-compile (require 'cl-lib))
+
 (require 'ox-html)
 (require 'ox-md)
 (require 'ox-publish)
@@ -36,8 +38,6 @@
 (require 'mustache)
 (require 'dash)
 (require 's)
-
-(eval-when-compile (require 'cl))
 
 
 ;;; org-remark info
@@ -84,7 +84,6 @@
 ;;;; Load all org-remark functions
 (mapcar (lambda (x) (require (intern (format "ox-remark-%s" x)) nil t))
         '("core" "html"))
-
 
 ;;;; Internal functions
 
