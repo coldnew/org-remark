@@ -46,11 +46,11 @@
 ;;; org-remark info
 
 (defconst org-remark-version "0.1"
-  "Blogit version string.")
+  "org-remark version string.")
 
 (defconst org-remark-url
   "http://github.com/coldnew/org-remark"
-  "Url for org-remakr.")
+  "Url for org-remark.")
 
 (defconst org-remark-path
   (file-name-directory (or load-file-name (buffer-file-name)))
