@@ -1,5 +1,6 @@
 EMACS ?= emacs
 CASK ?= cask
+WGET ?= wget
 
 all: compile
 
@@ -21,4 +22,8 @@ clean:
 compile:
 	${CASK} exec  ${EMACS} -Q -batch -f batch-byte-compile ox-remark.el
 
-.PHONY: all test unit compile clean README.md
+update-js:
+	mkdir -p js
+	wget http://gnab.github.io/remark/downloads/remark-latest.min.js -O js/remark.min.js
+
+.PHONY: all test unit compile clean README.md update-js
