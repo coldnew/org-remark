@@ -79,7 +79,7 @@
 ;;; Internal variables
 
 (defvar ox-remark-directory
-  (file-name-directory load-file-name))
+  (file-name-directory (or load-file-name (buffer-file-name))))
 
 (defvar ox-remark-template-directory
   (directory-file-name (concat ox-remark-directory "templates")))
