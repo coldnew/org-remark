@@ -171,6 +171,14 @@ If template contains <lisp> ... </lisp>, evalute this block like o-blog does."
   (with-temp-buffer
     (insert-file-contents file) (buffer-string)))
 
+(defun org-remark--build-meta-info (info)
+  "Return meta tags for exported document.
+INFO is a plist used as a communication channel."
+  (org-html--build-meta-info info))
+
+(defun ox-remark--build-head (info)
+  (org-html--build-head info))
+
 (defmacro ox-remark--build-context (info contents &rest pairs)
   "Create a hash table with the key-value pairs given.
 Keys are compared with `equal'.
@@ -181,14 +189,9 @@ This function is used to create context for blogit-render function,
 many useful context is predefined here, but you can overwrite it.
 "
   `(ht
-    ("TITLE"  (or (ox-remark--parse-option ,info :title) "Untitled"))
-    ("AUTHOR" (or (ox-remark--parse-option ,info :author) user-full-name "Unknown"))
-    ("EMAIL" (or (ox-remark--parse-option ,info :email) user-mail-address ""))
-
-    ("CHARSET" (or (ox-remark--parse-option ,info :charset) "UTF-8"))
-
+    ("HTML_META" (org-remark--build-meta-info ,info))
+    ("HTML_HEAD" (ox-remark--build-head ,info))
     ("CONTENTS" (or ,contents ""))
-
     ,@pairs))
 
 (defun org-remark-inner-template (contents info)
