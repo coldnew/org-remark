@@ -1,12 +1,12 @@
-;;; org-remark.el ---
+;;; ox-remark.el --- Export org-mode to remark.js
 
-;; Copyright (c) 2015 Yen-Chin, Lee.
+;; Copyright (c) 2015 - 2016 Yen-Chin, Lee.
 ;;
 ;; Author: Yen-Chin, Lee <coldnew.tw@gmail.com>
 ;; Keywords: html presentation org-mode
 ;; X-URL: http://github.com/coldnew/org-remark
-;; Version: 0.1
-;; Package-Requires: ((emacs "24.1") (org "8.0") (cl-lib "0.5") (f "0.17.2") (ht "2.0") (dash "2.6.0") (mustache "0.22"))
+;; Version: 0.2
+;; Package-Requires: ((emacs "24.3") (org "8.3") (ht "2.0") (dash "2.6.0") (mustache "0.22"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -32,21 +32,16 @@
 
 ;;; Dependencies
 
-(eval-when-compile (require 'cl-lib))
-
+(require 'cl)
 (require 'ox-html)
 (require 'ox-md)
-(require 'ox-publish)
-(require 'ht)
 (require 'mustache)
+(require 'ht)                           ; hash table library
 (require 'dash)
 (require 's)
 
 
 ;;; org-remark info
-
-(defconst org-remark-version "0.1"
-  "org-remark version string.")
 
 (defconst org-remark-url
   "http://github.com/coldnew/org-remark"
@@ -54,7 +49,10 @@
 
 (defconst org-remark-path
   (file-name-directory (or load-file-name (buffer-file-name)))
-  "Get the absolute path of dir contains ox-remark.el")
+  "Get the absolute path of dir contains ox-remark.el.")
+
+(defconst org-remark-template-file
+  (concat org-remark-path "/templates/default.html"))
 
 
 ;;; User Configuration Variables
@@ -64,10 +62,6 @@
    ;; TODO: replace with slide_header
    :page_header        "page_header.html"
    :page_footer        "page_footer.html"
-
-   :plugin_analytics   "plugin_analytics.html"
-   :plugin_lloogg      "plugin_lloogg.html"
-   :plugin_fancybox    "plugin_fancybox.html"
 
    ;; New slide template
    :slide_template     "slide.org")
@@ -85,149 +79,6 @@
   (directory-file-name (concat ox-remark-directory "templates")))
 
 ;;;; Load all org-remark functions
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; TODO: Need to rewrite
-
-(defun ox-remark--string-to-key (string)
-  "Conver string to key. eq: \"test\" -> :test"
-  (intern (format ":%s" string)))
-
-(defun ox-remark--key-to-string (key)
-  "Conver key to string. eq: :test -> \"test\""
-  (let ((key-str (symbol-name key)))
-    (s-right (- (length key-str) 1) key-str)))
-
-;; FIXME: not elegant
-(defun ox-remark--remove-dulpicate-backslash (str)
-  "Remove dulpicate backslash for str. If str contains `://', make it not modified."
-  (replace-regexp-in-string
-   ":/" "://"
-   (replace-regexp-in-string "//*" "/"  str)))
-
-
-(defun ox-remark--template-to-string (file)
-  "Read the content of FILE in template dir and return it as string.
-If template contains <lisp> ... </lisp>, evalute this block like o-blog does."
-  (with-temp-buffer
-    (insert-file-contents file) (buffer-string)))
-
-(defun ox-remark--template-fullfile (key)
-  "Get match template filename with fullpath according to key."
-  (let* ((filename (plist-get ox-remark-template-list key))
-         (keystr (ox-remark--key-to-string key))
-         (keypost (ox-remark--string-to-key (format "%s_post" keystr)))
-         (filename1 (plist-get ox-remark-template-list keypost))
-         fullfile)
-
-    ;; Check if key is exist in `ox-remark-template-list', if not
-    ;; take it as real file
-    (when (not filename)
-      ;; If template in key_post format exist
-      (if filename1 (setq filename filename1)
-        (setq filename keystr)))
-
-    ;; find file, if file is exist, take it as absolute file,
-    ;; else think it under ox-remark-template-directory
-    (setq fullfile
-          (if (file-exists-p filename)
-              (expand-file-name filename)
-              (concat ox-remark-template-directory "/" filename)))
-
-    ;; Convert file to standart filename
-    (convert-standard-filename (ox-remark--remove-dulpicate-backslash fullfile))))
-
-
-(defun ox-remark--parse-option (info key)
-  "Read option value of org file opened in current buffer.
-
-This function will first use the standard way to parse org-option.
-If parsing failed, use regexp to get the options, else return nil.
-"
-  (cl-flet ((plist-get-str (info key)
-                        (let ((r (plist-get info key)))
-                          (if (stringp r) r (or (car r) "")))))
-    (let* ((keystr1 (symbol-name key))
-           (keystr (upcase (s-right (- (length keystr1) 1) keystr1)))
-           (match-regexp (org-make-options-regexp `(,keystr)))
-           (option (plist-get-str info key)))
-
-      ;; if we can use plist-get to get org-option, use it
-      ;; else use regexp to find options
-      (or (if (not (string= "" option)) option)
-          (save-excursion
-            (goto-char (point-min))
-            (when (re-search-forward match-regexp nil t)
-              (match-string-no-properties 2 nil)))))))
-
-(defmacro ox-remark--build-context (info &rest pairs)
-  "Create a hash table with the key-value pairs given.
-Keys are compared with `equal'.
-
-\(fn (KEY-1 VALUE-1) (KEY-2 VALUE-2) ...)
-
-This function is used to create context for blogit-render function,
-many useful context is predefined here, but you can overwrite it.
-"
-  `(ht
-    ("TITLE"  (or (ox-remark--parse-option ,info :title) "Untitled"))
-    ("AUTHOR" (or (ox-remark--parse-option ,info :author) user-full-name "Unknown"))
-    ("EMAIL" (or (ox-remark--parse-option ,info :email) user-mail-address ""))
-
-    ("CHARSET" (or (ox-remark--parse-option ,info :charset) "UTF-8"))
-
-    ;; Extra blogit plugin
-    ("PLUGIN_ANALYTICS" (or (ox-remark--render-analytics-template ,info) ""))
-    ("PLUGIN_LLOOGG" (or (ox-remark--render-lloogg-template ,info) ""))
-
-    ,@pairs))
-
-;; TODO: seems like we can reduce some function here.
-
-(defun ox-remark--render-template (type context)
-  "Read the file contents, then render it with a hashtable context."
-  (let ((file (or (ox-remark--template-fullfile type) type)))
-    (mustache-render (ox-remark--template-to-string file) context)))
-
-(defun ox-remark--render-analytics-template (info)
-  (let ((analytics (or (ox-remark--parse-option info :analytics) "")))
-    (when (and analytics (not (string= "" analytics)))
-      (ox-remark--render-template :plugin_analytics (ht ("ANALYTICS" analytics))))))
-
-(defun ox-remark--render-lloogg-template (info)
-  (let ((lloogg (or (ox-remark--parse-option info :lloogg) "")))
-    (when (and lloogg (not (string= "" lloogg)))
-      (ox-remark--render-template :plugin_lloogg (ht ("LLOOGG" lloogg))))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defmacro ox-remark--build-context-html (info &rest pairs)
-  "Create a hash table with the key-value pairs given.
-Keys are compared with `equal'.
-
-\(fn (KEY-1 VALUE-1) (KEY-2 VALUE-2) ...)
-
-This function is used to create context for blogit-render function,
-many useful context is predefined here, but you can overwrite it.
-"
-  `(ox-remark--build-context
-    ,info
-
-    ;; context from blogit template
-    ("PAGE_HEADER" (ox-remark--render-header-template ,info))
-    ("PAGE_FOOTER" (ox-remark--render-footer-template ,info))
-
-    ,@pairs))
-
-
-;;; Template render function
-
-(defun ox-remark--render-header-template (info)
-  (ox-remark--render-template :page_header (ox-remark--build-context info)))
-
-(defun ox-remark--render-footer-template (info)
-  (ox-remark--render-template :page_footer (ox-remark--build-context info)))
-
 
 
 ;;; Define Back-End for org-export
@@ -313,49 +164,63 @@ holding contextual information."
 
 ;;; Template
 
-(defun org-remark--build-head (info)
-  "Return information for the <head>..</head> of the HTML output.
-INFO is a plist used as a communication channel."
-  (org-element-normalize-string
-   (concat
-    (org-element-normalize-string (plist-get info :html-head))
-    (org-element-normalize-string (plist-get info :html-head-extra))
-    (when (and (plist-get info :html-htmlized-css-url)
-               (eq org-html-htmlize-output-type 'css))
-      (org-html-close-tag "link"
-                          (format " rel=\"stylesheet\" href=\"%s\" type=\"text/css\""
-                                  (plist-get info :html-htmlized-css-url))
-                          info)))))
+;; FIXME: remo
+(defun ox-remark--parse-option (info key)
+  "Read option value of org file opened in current buffer.
+
+This function will first use the standard way to parse org-option.
+If parsing failed, use regexp to get the options, else return nil.
+"
+  (cl-flet ((plist-get-str (info key)
+                           (let ((r (plist-get info key)))
+                             (if (stringp r) r (or (car r) "")))))
+    (let* ((keystr1 (symbol-name key))
+           (keystr (upcase (s-right (- (length keystr1) 1) keystr1)))
+           (match-regexp (org-make-options-regexp `(,keystr)))
+           (option (plist-get-str info key)))
+
+      ;; if we can use plist-get to get org-option, use it
+      ;; else use regexp to find options
+      (or (if (not (string= "" option)) option)
+          (save-excursion
+            (goto-char (point-min))
+            (when (re-search-forward match-regexp nil t)
+              (match-string-no-properties 2 nil)))))))
+
+(defun ox-remark--template-to-string (file)
+  "Read the content of FILE in template dir and return it as string.
+If template contains <lisp> ... </lisp>, evalute this block like o-blog does."
+  (with-temp-buffer
+    (insert-file-contents file) (buffer-string)))
+
+(defmacro ox-remark--build-context (info contents &rest pairs)
+  "Create a hash table with the key-value pairs given.
+Keys are compared with `equal'.
+
+\(fn (KEY-1 VALUE-1) (KEY-2 VALUE-2) ...)
+
+This function is used to create context for blogit-render function,
+many useful context is predefined here, but you can overwrite it.
+"
+  `(ht
+    ("TITLE"  (or (ox-remark--parse-option ,info :title) "Untitled"))
+    ("AUTHOR" (or (ox-remark--parse-option ,info :author) user-full-name "Unknown"))
+    ("EMAIL" (or (ox-remark--parse-option ,info :email) user-mail-address ""))
+
+    ("CHARSET" (or (ox-remark--parse-option ,info :charset) "UTF-8"))
+
+    ("CONTENTS" (or ,contents ""))
+
+    ,@pairs))
 
 (defun org-remark-inner-template (contents info)
   "Return body of document string after HTML conversion.
 CONTENTS is the transcoded contents string.  INFO is a plist
 holding export options."
-  (concat
-   ;; Table of contents.
-   (let ((depth (plist-get info :with-toc)))
-     ;;     (when depth (org-blogit-toc depth info))
-     )
-
-   ;; Header
-   (ox-remark--render-header-template info)
-
-   ;; Document contents.
-   contents
-
-   ;; Footnotes section.
-   (org-html-footnote-section info)
-
-   ;; Footer
-   (ox-remark--render-footer-template info)))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;;; Internal functions
-
-(defun org-remark--save-and-export ()
-  (org-remark-export-to-html))
+  (let ((file org-remark-template-file))
+    (mustache-render
+     (ox-remark--template-to-string file)
+     (ox-remark--build-context info contents))))
 
 
 ;;; End-user functions
@@ -363,18 +228,19 @@ holding export options."
 ;;;###autoload
 (defun org-remark-export-as-html
     (&optional async subtreep visible-only body-only ext-plist)
-  "Export current buffer to an HTML buffer for blogit.
-
-Export is done in a buffer named \"*Blogit HTML Export*\", which
+  "
+Export is done in a buffer named \"*Reamrk HTML Export*\", which
 will be displayed when `org-export-show-temporary-export-buffer'
 is non-nil."
   (interactive)
   (org-export-to-buffer 'ox-remark "*Org remark Export*"
-    async subtreep visible-only nil nil (lambda () (html-mode))))
+    async subtreep visible-only body-only ext-plist
+    (lambda () (set-auto-mode t))))
 
 ;;;###autoload
-(defun org-remark-export-to-html (&optional async subtreep visible-only)
-  "Export current buffer to a Markdown file.
+(defun org-remark-export-to-html
+  (&optional async subtreep visible-only body-only ext-plist)
+  "Export current buffer to a HTML file.
 
 If narrowing is active in the current buffer, only export its
 narrowed part.
@@ -392,21 +258,23 @@ first.
 When optional argument VISIBLE-ONLY is non-nil, don't export
 contents of hidden elements.
 
+When optional argument BODY-ONLY is non-nil, only write code
+between \"<body>\" and \"</body>\" tags.
+
+EXT-PLIST, when provided, is a property list with external
+parameters overriding Org default settings, but still inferior to
+file-local settings.
+
 Return output file's name."
   (interactive)
-  (let ((outfile (org-export-output-file-name ".html" subtreep)))
-    (org-export-to-file 'ox-remark outfile async subtreep visible-only)))
+  (let* ((extension (concat "." (or (plist-get ext-plist :html-extension)
+                                    org-html-extension
+                                    "html")))
+         (file (org-export-output-file-name extension subtreep))
+         (org-export-coding-system org-html-coding-system))
+    (org-export-to-file 'ox-remark file
+      async subtreep visible-only body-only ext-plist)))
 
-;;;###autoload
-(define-minor-mode org-remark-save-and-export-mode
-  "Serves the buffer live over HTTP."
-  :group 'org-remark-save-and-export-mode
-  :lighter " remark"
-  (save-restriction
-    (if org-remark-save-and-export-mode
-        (add-hook 'after-save-hook nil 'append 'make-it-local)
-      (remove-hook 'after-save-hook 'org-remark--save-and-export 'make-it-local))
-    org-remark-save-and-export-mode))
 
-(provide 'org-remark)
-;;; org-remark.el ends here.
+(provide 'ox-remark)
+;;; ox-remark.el ends here
