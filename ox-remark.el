@@ -71,6 +71,9 @@
     (src-block . org-remark-src-block)
     (example-block . org-remark-example-block)
     (headline     . org-remark-headline)
+    )
+  :options-alist
+  '((:template "TEMPLATE" nil nil)      ; user defined template file
     ))
 
 
@@ -82,13 +85,18 @@ CONTENTS holds the contents of the headline. INFO is a plist
 holding contextual information."
   ;; First call org-html-headline to get the formatted HTML contents.
   ;; Then add enclosing <article> tags to mark slides.
-  (let* ((info (plist-put info :headline-offset
-                          (string-to-number (or (org-element-property :OFFSET headline) "0"))))
-         (class (org-element-property :CLASS headline)))
+  (unless (org-element-property :footnote-section-p headline)
+    (let* ((level (org-export-get-relative-level headline info))
+           (class (org-element-property :CLASS headline)))
 
-    (format "\n%s\n\n%s"
-            (if class (concat "class: " class) "")
-            (org-md-headline headline contents info))))
+      (concat
+       ;; newpage ?
+       ;; (if (= 1 level) "---\n\n" "")
+       "---\n"
+       ;; class ?
+       (if class (concat "class: " class "\n") "\n")
+       ;; headline
+       (org-md-headline headline contents info)))))
 
 
 ;;;; Example Block and Src Block
@@ -123,21 +131,22 @@ holding contextual information."
   (let ((parent (org-export-get-parent-headline section)))
     ;; Before first headline: no container, just return CONTENTS.
     (if (not parent) contents
-      ;; Get div's class and id references.
-      (let* ((class-num (+ (org-export-get-relative-level parent info)
-                           (1- org-html-toplevel-hlevel)))
-             (section-number
-              (mapconcat
-               'number-to-string
-               (org-export-get-headline-number parent info) "-")))
+        ;; Get div's class and id references.
+        (let* ((class-num (+ (org-export-get-relative-level parent info)
+                             (1- org-html-toplevel-hlevel)))
+               (section-number
+                (mapconcat
+                 'number-to-string
+                 (org-export-get-headline-number parent info) "-")))
 
-        ;;  "article"
-        ;;  (format "class=\"%s\" id=\"text-%s\""
-        ;;          (or (org-element-property :ARTICLE parent) "")
-        ;;          (or (org-element-property :CUSTOM_ID parent) section-number))
+          ;;  "article"
+          ;;  (format "class=\"%s\" id=\"text-%s\""
+          ;;          (or (org-element-property :ARTICLE parent) "")
+          ;;          (or (org-element-property :CUSTOM_ID parent) section-number))
 
-
-        (format "%s\n---\n" contents)))))
+          (format "%s\n" contents)
+          ;; (format "%s\n---\n" contents)
+          ))))
 
 
 ;;; Template
@@ -225,7 +234,7 @@ is non-nil."
 
 ;;;###autoload
 (defun org-remark-export-to-html
-  (&optional async subtreep visible-only body-only ext-plist)
+    (&optional async subtreep visible-only body-only ext-plist)
   "Export current buffer to a HTML file.
 
 If narrowing is active in the current buffer, only export its
