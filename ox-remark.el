@@ -191,6 +191,11 @@ many useful context is predefined here, but you can overwrite it.
   `(ht
     ("HTML_META" (org-remark--build-meta-info ,info))
     ("HTML_HEAD" (ox-remark--build-head ,info))
+    ;; TODO: remove ------------------------------
+    ("TITLE"  (or (ox-remark--parse-option ,info :title) "Untitled"))
+    ("AUTHOR" (or (ox-remark--parse-option ,info :author) user-full-name "Unknown"))
+    ("EMAIL" (or (ox-remark--parse-option ,info :email) user-mail-address ""))
+    ;; ------------------------------------------------------------
     ("CONTENTS" (or ,contents ""))
     ,@pairs))
 
