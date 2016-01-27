@@ -150,7 +150,7 @@ holding contextual information."
           ;;          (or (org-element-property :ARTICLE parent) "")
           ;;          (or (org-element-property :CUSTOM_ID parent) section-number))
 
-          (format "%s\n" contents)
+          (format "%s\n" (or contents ""))
           ;; (format "%s\n---\n" contents)
           ))))
 
