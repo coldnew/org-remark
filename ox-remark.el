@@ -54,6 +54,12 @@
 (defconst org-remark-template-file
   (concat org-remark-path "/templates/default.html"))
 
+;; FIXME:
+(defcustom org-remark-hlevel 1
+  "The minimum level of headings that should be grouped into vertical slides."
+  :group 'org-export-remark
+  :type 'integer)
+
 
 ;;; Internal variables
 
@@ -73,7 +79,7 @@
     (headline     . org-remark-headline)
     )
   :options-alist
-  '((:template "TEMPLATE" nil nil)      ; user defined template file
+  '((:remark-template "REMARK_TEMPLATE" nil nil)      ; user defined template file
     ))
 
 
@@ -87,7 +93,7 @@ holding contextual information."
   ;; Then add enclosing <article> tags to mark slides.
   (unless (org-element-property :footnote-section-p headline)
     (let* ((level (org-export-get-relative-level headline info))
-           (class (org-element-property :CLASS headline)))
+           (class (org-element-property :REMARK_CLASS headline)))
 
       (concat
        ;; newpage ?
@@ -212,7 +218,10 @@ many useful context is predefined here, but you can overwrite it.
   "Return body of document string after HTML conversion.
 CONTENTS is the transcoded contents string.  INFO is a plist
 holding export options."
-  (let ((file org-remark-template-file))
+  (let* ((path (file-name-directory (plist-get info :output-file)))
+         (user-template (concat path (plist-get info :remark-template)))
+         (file (if (file-exists-p user-template) user-template org-remark-template-file)))
+    (message (format "out: %s\n template: %s\n" path user-template))
     (mustache-render
      (ox-remark--template-to-string file)
      (ox-remark--build-context info contents))))
