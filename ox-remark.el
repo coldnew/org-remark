@@ -55,30 +55,8 @@
   (concat org-remark-path "/templates/default.html"))
 
 
-;;; User Configuration Variables
-
-(defvar ox-remark-template-list
-  (list
-   ;; TODO: replace with slide_header
-   :page_header        "page_header.html"
-   :page_footer        "page_footer.html"
-
-   ;; New slide template
-   :slide_template     "slide.org")
-  "Template filename define for ox-remark to parse.")
-
-;;; Customized Variables
-
-
 ;;; Internal variables
 
-(defvar ox-remark-directory
-  (file-name-directory (or load-file-name (buffer-file-name))))
-
-(defvar ox-remark-template-directory
-  (directory-file-name (concat ox-remark-directory "templates")))
-
-;;;; Load all org-remark functions
 
 
 ;;; Define Back-End for org-export
