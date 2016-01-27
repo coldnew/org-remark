@@ -279,6 +279,27 @@ Return output file's name."
     (org-export-to-file 'ox-remark file
       async subtreep visible-only body-only ext-plist)))
 
+(defun org-remark-save ()
+  "Saves the file and reloads in browser."
+  (interactive)
+  (save-buffer)
+  (org-remark-export-to-html))
+
+(defvar org-remark-mode-syntax-table
+  (let ((st (make-syntax-table))) st)
+  "Syntax table for `org-remark-mode'.")
+
+;;;###autoload
+(define-derived-mode
+    org-remark-mode
+    org-mode
+    "org-remark"
+  "A major mode for editing org-remark files.
+
+\\{org-remark-mode-map}"
+  :syntax-table org-remark-mode-syntax-table)
+
+(define-key org-remark-mode-map (kbd "C-x C-s") 'org-remark-save)
 
 (provide 'ox-remark)
 ;;; ox-remark.el ends here
