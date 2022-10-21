@@ -1,10 +1,20 @@
-## org-remark.el ---
+<a href="http://github.com/coldnew/org-remark"><img src="https://www.gnu.org/software/emacs/images/emacs.png" alt="Emacs Logo" width="80" height="80" align="right"></a>
+## ox-remark.el
+*Export org-mode to remark.js*
+
 ---
-[![License GPL 3](https://img.shields.io/badge/license-GPL_3-green.svg?dummy)](http://www.gnu.org/licenses/gpl-3.0.txt)
 [![Build Status](https://travis-ci.org/coldnew/org-remark.svg?branch=master)](https://travis-ci.org/coldnew/org-remark)
+[![License GPL 3](https://img.shields.io/badge/license-GPL_3-green.svg?dummy)](http://www.gnu.org/licenses/gpl-3.0.txt)
 
-### Function Documentation
 
+
+### Customization Documentation
+
+#### `org-remark-hlevel`
+
+The minimum level of headings that should be grouped into vertical slides.
+
+### Function and Macro Documentation
 
 #### `(org-remark-headline HEADLINE CONTENTS INFO)`
 
@@ -36,29 +46,37 @@ Return body of document string after HTML conversion.
 CONTENTS is the transcoded contents string.  INFO is a plist
 holding export options.
 
-<!-- Error: (void-function &optional) -->
+#### `(org-remark-export-as-html &optional ASYNC SUBTREEP VISIBLE-ONLYBODY-ONLY EXT-PLIST)`
 
-#### `(org-remark-export-to-html &optional ASYNC SUBTREEP VISIBLE-ONLY)`
 
-Export current buffer to a Markdown file.
+Export is done in a buffer named "*Reamrk HTML Export*", which
+will be displayed when `org-export-show-temporary-export-buffer`
+is non-nil.
 
+#### `(org-remark-export-to-html &optional ASYNC SUBTREEP VISIBLE-ONLYBODY-ONLY EXT-PLIST)`
+
+Export current buffer to a HTML file.
 If narrowing is active in the current buffer, only export its
 narrowed part.
-
 If a region is active, export that region.
-
 A non-nil optional argument ASYNC means the process should happen
 asynchronously.  The resulting file should be accessible through
 the `org-export-stack` interface.
-
 When optional argument SUBTREEP is non-nil, export the sub-tree
 at point, extracting information from the headline properties
 first.
-
 When optional argument VISIBLE-ONLY is non-nil, don't export
 contents of hidden elements.
-
+When optional argument BODY-ONLY is non-nil, only write code
+between "<body>" and "</body>" tags.
+EXT-PLIST, when provided, is a property list with external
+parameters overriding Org default settings, but still inferior to
+file-local settings.
 Return output file's name.
+
+#### `(org-remark-save)`
+
+Saves the file and reloads in browser.
 
 -----
 <div style="padding-top:15px;color: #d0d0d0;">
