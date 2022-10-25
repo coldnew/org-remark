@@ -5,6 +5,7 @@
 ;; Author: Yen-Chin, Lee <coldnew.tw@gmail.com>
 ;; Keywords: html presentation org-mode
 ;; X-URL: http://github.com/coldnew/org-remark
+;; URL: http://github.com/coldnew/org-remark
 ;; Version: 0.2
 ;; Package-Requires: ((emacs "24.3") (org "8.3") (ht "2.0") (dash "2.6.0") (mustache "0.22"))
 
@@ -26,7 +27,6 @@
 
 ;;; Commentary:
 ;; [![License GPL 3](https://img.shields.io/badge/license-GPL_3-green.svg?dummy)](http://www.gnu.org/licenses/gpl-3.0.txt)
-;; [![Build Status](https://travis-ci.org/coldnew/org-remark.svg?branch=master)](https://travis-ci.org/coldnew/org-remark)
 
 ;;; Code:
 
